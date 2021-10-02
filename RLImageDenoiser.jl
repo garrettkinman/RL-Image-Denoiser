@@ -4,6 +4,7 @@ using Images
 using ReinforcementLearning
 using FileIO
 using Noise
+using Pipe
 
 ## constants
 
@@ -25,11 +26,15 @@ const NOISY_IMG_PATH = "./images/noisy/"
 
 ## import images
 
-test_img = load(ORIG_IMG_PATH * "00000000.jpg")
+filenames = readdir(ORIG_IMG_PATH, join=true)
+orig_imgs = load.(filenames)
 
 ## generate noisy images
 
-add_gauss(test_img, clip=true)
-salt_pepper(test_img)
-poisson(test_img, 10, clip=true)
-quantization(test_img, 10)
+orig_imgs[1]
+add_gauss(orig_imgs[1], clip=true)
+salt_pepper(orig_imgs[1])
+poisson(orig_imgs[1], 10, clip=true)
+quantization(orig_imgs[1], 10)
+
+@pipe orig_imgs[1] |> add_gauss(_, clip=true) |> salt_pepper |> poisson(_, 10, clip=true) |> quantization(_, 10)
