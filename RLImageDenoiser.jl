@@ -144,6 +144,4 @@ println("Total discounted reward for 1 simulation: $r_tot")
 
 =#
 
-## demo
-
-noisy_imgs[1] |> gauss5 |> median5
+## 
