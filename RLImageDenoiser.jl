@@ -6,6 +6,7 @@ using FileIO
 using Noise
 using Pipe
 using Combinatorics
+using BenchmarkTools
 
 ## constants
 
@@ -60,37 +61,18 @@ noise_funcs = [add_gauss_wrapper, mult_gauss_wrapper, salt_pepper_wrapper, poiss
 @time noise_permutations = collect.([permutations(noise_funcs, n) for n ∈ 1:length(noise_funcs)])
 
 function noisify_image(img::AbstractMatrix)
-    # select random index for first layer
-    i = (abs(rand(Int)) % length(noise_funcs)) + 1
-
-    # select random index for second layer (because index on first layer determines number of permutations)
-    j = (abs(rand(Int)) % length(noise_permutations[i])) + 1
-
     # successively apply each noise function to the image
     img_copy = copy(img)
-    for func ∈ noise_permutations[i][j]
+    for func ∈ rand(rand(noise_permutations))
         img_copy = func(img_copy)
     end
     return img_copy
 end
 
-@time noisify_image(orig_imgs[1])
+@time noisy_imgs = noisify_image.(orig_imgs)
 
-# add noise to each original
-@time for img ∈ orig_imgs
-    # select random index for first layer
-    i = (abs(rand(Int)) % length(noise_funcs)) + 1
+## save the noisy images
 
-    # select random index for second layer (because index on first layer determines number of permutations)
-    j = (abs(rand(Int)) % length(noise_permutations[i])) + 1
-
-    # successively apply each noise function to the image
-    img_copy = copy(img)
-    for func ∈ noise_permutations[i][j]
-        img_copy = func(img_copy)
-    end
-end
-
-i = (abs(rand(Int)) % length(noise_funcs)) + 1
-j = (abs(rand(Int)) % length(noise_permutations[i])) + 1
-noise_permutations[i][j]
+filenames = readdir(ORIG_IMG_PATH)
+filenames = NOISY_IMG_PATH .* filenames
+@time save.(filenames, noisy_imgs)
