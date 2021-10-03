@@ -16,19 +16,6 @@ using Statistics
 const ORIG_IMG_PATH = "./images/orig/"
 const NOISY_IMG_PATH = "./images/noisy/"
 
-## TODO
-
-#=
-1. Import images
-2. Generate noisy images
-    * Additive white gaussian
-    * Multiplicative white gaussian
-    * Salt and pepper
-    * Poisson
-    * Quantization
-3. TODO
-=#
-
 ## import images
 
 filenames = readdir(ORIG_IMG_PATH, join=true)
@@ -44,13 +31,13 @@ filenames = readdir(ORIG_IMG_PATH, join=true)
 # use random σ (std dev) from 0 to 0.5
 add_gauss_wrapper(img::AbstractMatrix) = add_gauss(img, rand() / 2, clip=true)
 mult_gauss_wrapper(img::AbstractMatrix) = mult_gauss(img, rand() / 2, clip=true)
-salt_pepper_wrapper(img::AbstractMatrix) = salt_pepper(img, rand() / 2)
+salt_pepper_wrapper(img::AbstractMatrix) = salt_pepper(img, rand() / 4)
 
 # use random 10 to 100 photons
-poisson_wrapper(img::AbstractMatrix) = poisson(img, (abs(rand(Int)) % 90) + 11, clip=true)
+poisson_wrapper(img::AbstractMatrix) = poisson(img, rand(10:100), clip=true)
 
 # use random 5 to 20 levels
-quantization_wrapper(img::AbstractMatrix) = quantization(img, (abs(rand(Int)) % 10) + 11)
+quantization_wrapper(img::AbstractMatrix) = quantization(img, rand(5:20))
 
 ## add random combinations of noise types to each image
 
@@ -87,16 +74,13 @@ magnitude(x::RGB) = √(float(x.r)^2 + float(x.g)^2 + (x.b)^2)
 Base.isless(x::RGB, y::RGB) = magnitude(x) < magnitude(y)
 Statistics.middle(x::RGB) = x
 
-denoised_img = mapwindow(median, noisy_imgs[1], (3, 3))
-typeof(noisy_imgs[1])
-
 #= filter types
 1. Gaussian (3x3, 5x5, 7x7)
 2. Median (3x3, 5x5, 7x7)
 =#
-gauss3(img::AbstractMatrix) = imfilter(img, Kernel.gaussian((0.5, 0.5), (3, 3)), Inner())
-gauss5(img::AbstractMatrix) = imfilter(img, Kernel.gaussian((0.5, 0.5), (5, 5)), Inner())
-gauss7(img::AbstractMatrix) = imfilter(img, Kernel.gaussian((0.5, 0.5), (7, 7)), Inner())
+gauss3(img::AbstractMatrix) = imfilter(img, Kernel.gaussian((1, 1), (3, 3)), Inner())
+gauss5(img::AbstractMatrix) = imfilter(img, Kernel.gaussian((1, 1), (5, 5)), Inner())
+gauss7(img::AbstractMatrix) = imfilter(img, Kernel.gaussian((1, 1), (7, 7)), Inner())
 median3(img::AbstractMatrix) = mapwindow(median, img, (3, 3))
 median5(img::AbstractMatrix) = mapwindow(median, img, (5, 5))
 median7(img::AbstractMatrix) = mapwindow(median, img, (7, 7))
@@ -159,3 +143,7 @@ r_tot = simulate(sim, mdp, policy)
 println("Total discounted reward for 1 simulation: $r_tot")
 
 =#
+
+## demo
+
+noisy_imgs[1] |> gauss5 |> median5
